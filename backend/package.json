@@ -1,0 +1,37 @@
+{
+  "name": "prithvi-fix-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Prithvi Fix — Cooperative Gig Services Platform (PostgreSQL Edition)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed.js",
+    "db:reset": "node src/db/seed.js"
+  },
+  "keywords": [
+    "cooperative",
+    "gig",
+    "services",
+    "platform",
+    "postgresql",
+    "odisha"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

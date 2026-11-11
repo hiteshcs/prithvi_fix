@@ -126,7 +126,7 @@ const config = {
   port: parseInt(process.env.PGPORT || process.env.DB_PORT || '5432', 10),
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 30000,
 };
 
 const resolvedConnectionString = getResolvedConnectionString();
@@ -196,7 +196,7 @@ function getPool() {
         ssl: isSupabaseOrRemote ? { rejectUnauthorized: false } : (process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false),
         max: maxConnections,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
+        connectionTimeoutMillis: 30000,
         keepAlive: true,
         keepAliveInitialDelayMillis: 10000,
       });
@@ -212,7 +212,7 @@ function getPool() {
         ssl: isRemote ? { rejectUnauthorized: false } : false,
         max: maxConnections,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
+        connectionTimeoutMillis: 30000,
         keepAlive: true,
         keepAliveInitialDelayMillis: 10000,
       });

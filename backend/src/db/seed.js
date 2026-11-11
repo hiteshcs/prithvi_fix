@@ -3,8 +3,18 @@ const { query, closeDb } = require('./connection');
 const { migrate } = require('./migrate');
 
 async function seed() {
-  console.log('🚀 Ensuring database schema is fully migrated...');
-  await migrate();
+  console.log('🚀 Checking database schema status...');
+  try {
+    const check = await query("SELECT 1 FROM information_schema.tables WHERE table_name = 'cooperatives'");
+    if (!check || check.rowCount === 0) {
+      console.log('⚙️ Initializing tables via migrate()...');
+      await migrate();
+    } else {
+      console.log('✅ Schema tables verified.');
+    }
+  } catch (_) {
+    await migrate();
+  }
 
   const salt = bcrypt.hashSync('demo123', 10);
 

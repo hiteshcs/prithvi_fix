@@ -950,10 +950,12 @@ async function seed() {
   }
 
   // =============================================
-  // 6. Map Skills to Workers
+  // 6. Map Skills to Workers (Batched)
   // =============================================
+  const wsRows = [];
+  const wsParams = [];
+  let wsIdx = 1;
   for (let wId = 1; wId <= 84; wId++) {
-    // Map each worker to 2-3 skills based on their primary trade
     let skillIds = [1, 2, 3];
     if (wId >= 9 && wId <= 16) skillIds = [11, 12, 13];
     else if (wId >= 17 && wId <= 24) skillIds = [19, 20, 26];
@@ -968,15 +970,17 @@ async function seed() {
     else if (wId >= 76 && wId <= 84) skillIds = [11, 13, 19, 26];
 
     for (const sid of skillIds) {
-      await query(
-        `INSERT INTO worker_skills (worker_id, skill_id, proficiency_level) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
-        [wId, sid, 'EXPERT']
-      );
+      wsRows.push(`($${wsIdx++}, $${wsIdx++}, $${wsIdx++})`);
+      wsParams.push(wId, sid, 'EXPERT');
     }
   }
+  await query(
+    `INSERT INTO worker_skills (worker_id, skill_id, proficiency_level) VALUES ${wsRows.join(', ')} ON CONFLICT DO NOTHING`,
+    wsParams
+  );
 
   // =============================================
-  // 7. Services Catalog (47 Granular Services)
+  // 7. Services Catalog (47 Granular Services - Batched)
   // =============================================
   const services = [
     // 1-8: AC & Appliance Repair
@@ -1041,18 +1045,25 @@ async function seed() {
     ['Outstation Long-Distance Highway Chauffeur', 'Driving', 'Expert highway driver with all-India permit credentials & night-driving endurance', 899, 'per_day', 600, 'Car'],
   ];
 
+  const sRows = [];
+  const sParams = [];
+  let spIdx = 1;
   for (const s of services) {
-    await query(
-      `INSERT INTO services (name, category, description, base_price, price_unit, icon, is_complex, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 1)`,
-      [s[0], s[1], s[2], s[3], s[4], s[6], s[5] > 90 ? 1 : 0]
-    );
+    sRows.push(`($${spIdx++}, $${spIdx++}, $${spIdx++}, $${spIdx++}, $${spIdx++}, $${spIdx++}, $${spIdx++}, 1)`);
+    sParams.push(s[0], s[1], s[2], s[3], s[4], s[6], s[5] > 90 ? 1 : 0);
   }
+  await query(
+    `INSERT INTO services (name, category, description, base_price, price_unit, icon, is_complex, is_active) VALUES ${sRows.join(', ')}`,
+    sParams
+  );
 
   // =============================================
-  // 8. Society Founding Members (12 Societies x 10 = 120 Members)
+  // 8. Society Founding Members (12 Societies x 10 = 120 Members - Batched)
   // =============================================
   const occupations = ['Senior Electrician', 'Master Plumber', 'HVAC Technician', 'Cabinet Maker', 'Master Mason', 'Painter', 'Electronics Tech', 'Sanitation Pro', 'Gardener', 'Toolmaker'];
+  const mRows = [];
+  const mParams = [];
+  let mpIdx = 1;
   for (let socId = 1; socId <= 12; socId++) {
     for (let m = 1; m <= 10; m++) {
       const role = m === 1 ? 'PRESIDENT' : m === 2 ? 'SECRETARY' : m === 3 ? 'TREASURER' : 'MEMBER';
@@ -1060,16 +1071,17 @@ async function seed() {
       const occ = occupations[m - 1];
       const phone = `98765${socId.toString().padStart(2, '0')}${m.toString().padStart(3, '0')}`;
       const aadhaar = `XXXX-XXXX-${socId.toString().padStart(2, '0')}${m.toString().padStart(2, '0')}`;
-      await query(
-        `INSERT INTO society_founding_members (society_id, full_name, occupation, address, phone, aadhaar_number, role_in_society, is_signatory)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 1)`,
-        [socId, name, occ, `Cooperative Ward Cluster, Society ${socId}`, phone, aadhaar, role]
-      );
+      mRows.push(`($${mpIdx++}, $${mpIdx++}, $${mpIdx++}, $${mpIdx++}, $${mpIdx++}, $${mpIdx++}, $${mpIdx++}, 1)`);
+      mParams.push(socId, name, occ, `Cooperative Ward Cluster, Society ${socId}`, phone, aadhaar, role);
     }
   }
+  await query(
+    `INSERT INTO society_founding_members (society_id, full_name, occupation, address, phone, aadhaar_number, role_in_society, is_signatory) VALUES ${mRows.join(', ')}`,
+    mParams
+  );
 
   // =============================================
-  // 9. Society Statutory Documents (12 Societies x 6 = 72 Documents)
+  // 9. Society Statutory Documents (12 Societies x 6 = 72 Documents - Batched)
   // =============================================
   const docTemplates = [
     ['APPLICATION_FORM', 'Form No. 1 - Registered Society Charter Application', 'https://gov.in/docs/form1.pdf'],
@@ -1080,21 +1092,23 @@ async function seed() {
     ['AFFIDAVIT', 'Chief Promoter Non-Judicial Sworn Statutory Affidavit', 'https://gov.in/docs/affidavit.pdf'],
   ];
 
+  const dRows = [];
+  const dParams = [];
+  let dpIdx = 1;
   for (let socId = 1; socId <= 12; socId++) {
-    // Societies 1,3,5,7,10,11 are ACTIVE (VERIFIED docs)
-    // Societies 2,4,6,8,9,12 are DCO_REVIEW (PENDING verification by DCO!)
     const isActive = [1, 3, 5, 7, 10, 11].includes(socId);
     const status = isActive ? 'VERIFIED' : 'PENDING';
     const officer = isActive ? (socId <= 4 ? 'Shri Debendra Nayak (DCO)' : socId <= 8 ? 'Smt. Laxmi Devi (DCO)' : 'Shri Alok Mohapatra (DCO)') : null;
 
     for (const dt of docTemplates) {
-      await query(
-        `INSERT INTO society_statutory_documents (society_id, doc_type, document_name, document_url, verification_status, verified_by_officer, verified_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [socId, dt[0], `${dt[1]} (Soc #${socId})`, dt[2], status, officer, isActive ? new Date() : null]
-      );
+      dRows.push(`($${dpIdx++}, $${dpIdx++}, $${dpIdx++}, $${dpIdx++}, $${dpIdx++}, $${dpIdx++}, $${dpIdx++})`);
+      dParams.push(socId, dt[0], `${dt[1]} (Soc #${socId})`, dt[2], status, officer, isActive ? new Date() : null);
     }
   }
+  await query(
+    `INSERT INTO society_statutory_documents (society_id, doc_type, document_name, document_url, verification_status, verified_by_officer, verified_at) VALUES ${dRows.join(', ')}`,
+    dParams
+  );
 
   // =============================================
   // 10. Society Regulatory Inquiries (Section 68 - 1 per district)
@@ -1114,15 +1128,19 @@ async function seed() {
   }
 
   // =============================================
-  // 11. Society Treasury Ledger Entries
+  // 11. Society Treasury Ledger Entries (Batched)
   // =============================================
+  const lRows = [];
+  const lParams = [];
+  let lpIdx = 1;
   for (let socId = 1; socId <= 12; socId++) {
-    await query(
-      `INSERT INTO society_treasury_ledger (society_id, transaction_code, transaction_type, amount, description, balance_after)
-       VALUES ($1, $2, 'TREASURY_DEPOSIT', 50000.0, 'Initial Share Capital Contribution from Founding Artisan Members', 50000.0)`,
-      [socId, `TXN-CAP-2024-${100 + socId}`]
-    );
+    lRows.push(`($${lpIdx++}, $${lpIdx++}, 'TREASURY_DEPOSIT', 50000.0, 'Initial Share Capital Contribution from Founding Artisan Members', 50000.0)`);
+    lParams.push(socId, `TXN-CAP-2024-${100 + socId}`);
   }
+  await query(
+    `INSERT INTO society_treasury_ledger (society_id, transaction_code, transaction_type, amount, description, balance_after) VALUES ${lRows.join(', ')}`,
+    lParams
+  );
 
   // =============================================
   // 12. Mandatory Trade Toolkits & Cooperative Store

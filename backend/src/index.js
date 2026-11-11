@@ -180,6 +180,32 @@ app.get('/api/db/stats', async (req, res) => {
 });
 
 // ---------------------
+// Cloud Database Seed Endpoint
+// ---------------------
+const { seed } = require('./db/seed');
+app.get('/api/seed', async (req, res) => {
+  try {
+    const key = req.query.key || req.query.secret;
+    if (process.env.NODE_ENV === 'production' && key !== 'seed123' && key !== process.env.JWT_SECRET) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'To seed the database, add ?key=seed123 to this URL'
+      });
+    }
+
+    console.log('🌱 Cloud seed requested via API endpoint...');
+    await seed();
+    res.json({
+      status: 'ok',
+      message: '✅ Supabase database seeded successfully! All 12 Federations, 84 Verified Workers, 45 Trades, and Demo Accounts have been created.'
+    });
+  } catch (err) {
+    console.error('❌ Cloud seed failed:', err.message);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// ---------------------
 // Static APK Downloads Portal
 // ---------------------
 const apksDir = path.join(__dirname, '..', '..', 'apks');

@@ -363,17 +363,22 @@ async function seed() {
     ],
   ];
 
+  const coopRows = [];
+  const coopParams = [];
+  let cpIdx = 1;
   for (const c of cooperatives) {
-    await query(
-      `INSERT INTO cooperatives (
-        name, registration_number, district, city, address, contact_phone, contact_email, description,
-        local_area, jurisdiction_zone, status, dco_office_name, dco_officer_name, dco_approval_status,
-        dco_approved_at, dco_order_number, dco_audit_notes, federation_type, total_member_societies,
-        capital_reserve, cooperative_bank_name, bank_account_no, bank_ifsc
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
-      c
-    );
+    coopRows.push(`($${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++}, $${cpIdx++})`);
+    coopParams.push(...c);
   }
+  await query(
+    `INSERT INTO cooperatives (
+      name, registration_number, district, city, address, contact_phone, contact_email, description,
+      local_area, jurisdiction_zone, status, dco_office_name, dco_officer_name, dco_approval_status,
+      dco_approved_at, dco_order_number, dco_audit_notes, federation_type, total_member_societies,
+      capital_reserve, cooperative_bank_name, bank_account_no, bank_ifsc
+    ) VALUES ${coopRows.join(', ')}`,
+    coopParams
+  );
 
   // =============================================
   // 2. Cooperative Societies (12 Societies: 4 per District)
@@ -591,18 +596,23 @@ async function seed() {
     ],
   ];
 
+  const socRows = [];
+  const socParams = [];
+  let scpIdx = 1;
   for (const s of societiesSeed) {
-    await query(
-      `INSERT INTO societies (
-        society_code, name, status, registration_number, registered_email, registered_phone,
-        district, city, address, pincode, objectives, is_nlcf_affiliated, nlcf_certificate_no,
-        nlcf_affiliation_date, dco_office_name, dco_officer_name, dco_linked, ncct_training_completed,
-        ministry_recognized, initial_capital_balance, bank_account_no, cooperative_bank_name,
-        bank_ifsc, audit_frequency, timeline_stage, tracking_id, total_workers_count, federation_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
-      s
-    );
+    socRows.push(`($${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++}, $${scpIdx++})`);
+    socParams.push(...s);
   }
+  await query(
+    `INSERT INTO societies (
+      society_code, name, status, registration_number, registered_email, registered_phone,
+      district, city, address, pincode, objectives, is_nlcf_affiliated, nlcf_certificate_no,
+      nlcf_affiliation_date, dco_office_name, dco_officer_name, dco_linked, ncct_training_completed,
+      ministry_recognized, initial_capital_balance, bank_account_no, cooperative_bank_name,
+      bank_ifsc, audit_frequency, timeline_stage, tracking_id, total_workers_count, federation_id
+    ) VALUES ${socRows.join(', ')}`,
+    socParams
+  );
 
   // =============================================
   // 3. Users: Customers (60), Workers (84), Admins (16)
@@ -820,18 +830,24 @@ async function seed() {
 
   users.push(...adminUsers);
 
+  const uRows = [];
+  const uParams = [];
+  let uIdx = 1;
   for (const u of users) {
-    await query(
-      `INSERT INTO users (name, email, phone, password, role, district, city, address, pincode, latitude, longitude, is_active, admin_type, designation, society_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-      u
-    );
+    uRows.push(`($${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++}, $${uIdx++})`);
+    uParams.push(...u);
   }
+  await query(
+    `INSERT INTO users (name, email, phone, password, role, district, city, address, pincode, latitude, longitude, is_active, admin_type, designation, society_id) VALUES ${uRows.join(', ')}`,
+    uParams
+  );
 
   // =============================================
-  // 4. Worker Profiles (84 Workers)
+  // 4. Worker Profiles (84 Workers - Batched)
   // =============================================
-  // Map 84 workers to their user records (user_id = 61 to 144)
+  const wRows = [];
+  const wParams = [];
+  let wIdx = 1;
   for (let i = 0; i < workerData.length; i++) {
     const w = workerData[i];
     const userId = 61 + i;
@@ -850,7 +866,6 @@ async function seed() {
     const toolkitCompliance = vStatus === 'VERIFIED' ? 'VERIFIED_EQUIPPED' : 'PENDING';
     const avail = isPending ? 'OFFLINE' : (i % 6 === 0 ? 'BUSY' : 'AVAILABLE');
 
-    // Extract trade from name or index
     let trade = 'Appliance Repair';
     if (w[0].includes('Electrician') || w[0].includes('Wiring') || w[0].includes('Solar') || w[0].includes('Lighting') || w[0].includes('Panel')) trade = 'Electrical';
     else if (w[0].includes('Plumb') || w[0].includes('Pipe') || w[0].includes('Leak') || w[0].includes('Geyser') || w[0].includes('Drain') || w[0].includes('Tank')) trade = 'Plumbing';
@@ -861,25 +876,27 @@ async function seed() {
     else if (w[0].includes('Caregiver') || w[0].includes('Nursing')) trade = 'Caregiving';
     else if (w[0].includes('Chauffeur')) trade = 'Driving';
 
-    await query(
-      `INSERT INTO workers (
-        user_id, worker_code, cooperative_id, experience_years, service_area,
-        latitude, longitude, verification_status, toolkit_compliance, availability, rating,
-        total_reviews, total_jobs_completed, total_earnings, bio, tier,
-        merit_points, strike_count, sos_active, primary_trade, society_id,
-        is_nlcf_affiliated, is_ncct_certified, tools_owned, federation_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`,
-      [
-        userId, workerCode, coopId, exp, w[4],
-        w[7], w[8], vStatus, toolkitCompliance, avail, rating,
-        totalReviews, jobsDone, earnings, `${w[0]} with verified cooperative guild credentials in ${w[4]}.`,
-        tier, merit, 0, 0, trade, societyId,
-        1, (i % 2 === 0 ? 1 : 0),
-        toolkitCompliance === 'VERIFIED_EQUIPPED' ? 'Standard ISI Certified Trade Toolkit & Safety Kit' : null,
-        1
-      ]
+    wRows.push(`($${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++}, $${wIdx++})`);
+    wParams.push(
+      userId, workerCode, coopId, exp, w[4],
+      w[7], w[8], vStatus, toolkitCompliance, avail, rating,
+      totalReviews, jobsDone, earnings, `${w[0]} with verified cooperative guild credentials in ${w[4]}.`,
+      tier, merit, 0, 0, trade, societyId,
+      1, (i % 2 === 0 ? 1 : 0),
+      toolkitCompliance === 'VERIFIED_EQUIPPED' ? 'Standard ISI Certified Trade Toolkit & Safety Kit' : null,
+      1
     );
   }
+  await query(
+    `INSERT INTO workers (
+      user_id, worker_code, cooperative_id, experience_years, service_area,
+      latitude, longitude, verification_status, toolkit_compliance, availability, rating,
+      total_reviews, total_jobs_completed, total_earnings, bio, tier,
+      merit_points, strike_count, sos_active, primary_trade, society_id,
+      is_nlcf_affiliated, is_ncct_certified, tools_owned, federation_id
+    ) VALUES ${wRows.join(', ')}`,
+    wParams
+  );
 
   // =============================================
   // 5. Skills Taxonomy (45 Granular Skills)
@@ -945,9 +962,14 @@ async function seed() {
     ['City & Outstation Chauffeur Service', 'Driving', 'Manual and automatic transmission driving, defensive city routing, and pre-drive safety check'],
   ];
 
+  const skRows = [];
+  const skParams = [];
+  let skIdx = 1;
   for (const s of skills) {
-    await query(`INSERT INTO skills (name, category, description) VALUES ($1, $2, $3)`, s);
+    skRows.push(`($${skIdx++}, $${skIdx++}, $${skIdx++})`);
+    skParams.push(...s);
   }
+  await query(`INSERT INTO skills (name, category, description) VALUES ${skRows.join(', ')}`, skParams);
 
   // =============================================
   // 6. Map Skills to Workers (Batched)

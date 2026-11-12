@@ -14,6 +14,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useLocationContext } from '../context/LocationContext';
 import CivicLoader from '../components/CivicLoader';
 import { getProcessStepsForService } from '../utils/serviceProcessData';
+import { getServiceImage } from '../utils/serviceImageMap';
 
 const ICON_MAP = {
   Zap, Droplets, Hammer, Paintbrush, SprayCan, Flower2,
@@ -471,33 +472,47 @@ export default function Services() {
                     </div>
                   )}
 
-                  <div className="p-5">
-                    {/* Top Row: Icon + Category Badge + 93-2-5 Trigger */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                  {/* Service Photo Banner */}
+                  <div className="relative h-44 w-full bg-slate-100 overflow-hidden group">
+                    <img
+                      src={getServiceImage(service.name, service.category)}
+                      alt={service.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/banners/banner_emergency_squad.png';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
+
+                    <div className="absolute top-3 left-3">
                       <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
-                          isEmergency ? 'bg-red-100 text-red-700' : 'bg-blue-950 text-amber-300'
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-md backdrop-blur-xs ${
+                          isEmergency ? 'bg-red-600 text-white' : 'bg-blue-950/90 text-amber-300'
                         }`}
                       >
-                        <IconComponent size={24} />
-                      </div>
-
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/60">
-                          {service.category}
-                        </span>
-                        {service.is_complex ? (
-                          <span className="text-[9px] font-extrabold px-2 py-0.2 rounded-full bg-purple-100 text-purple-800">
-                            Specialist Task
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-semibold px-2 py-0.2 rounded-full bg-emerald-50 text-emerald-700">
-                            Routine Task
-                          </span>
-                        )}
+                        <IconComponent size={18} />
                       </div>
                     </div>
 
+                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/95 text-slate-800 shadow-xs backdrop-blur-xs">
+                        {service.category}
+                      </span>
+                      {service.is_complex ? (
+                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-purple-700 text-white shadow-xs">
+                          Specialist Task
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-700 text-white shadow-xs">
+                          Routine Task
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-5">
                     {/* Service Name & Scope */}
                     <h3 className="font-extrabold text-gray-900 text-base mb-1 leading-snug">
                       {service.name}
@@ -895,31 +910,43 @@ export default function Services() {
                   </div>
 
                   <div className="space-y-3">
-                    {sop.steps.map((st) => (
-                      <div
-                        key={st.step}
-                        className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-blue-400 transition-all space-y-2"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {st.step}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-extrabold text-slate-900 text-sm">{st.title}</h4>
-                            <p className="text-xs text-slate-600 mt-1 leading-relaxed">{st.desc}</p>
-                          </div>
-                        </div>
-
-                        <div className="pl-10 grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 border-t border-slate-200/60 text-[10.5px]">
-                          {st.points.map((pt, pIdx) => (
-                            <div key={pIdx} className="flex items-center gap-1 text-slate-700 font-medium">
-                              <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
-                              <span className="line-clamp-1">{pt}</span>
+                    {sop.steps.map((st, sIdx) => {
+                      const stepImg = [
+                        '/images/steps/step1_preservice.jpg',
+                        '/images/steps/step2_indoor.jpg',
+                        '/images/steps/step3_outdoor.jpg',
+                        '/images/steps/step4_gas.jpg',
+                        '/images/steps/step5_cleanup.jpg'
+                      ][sIdx % 5];
+                      return (
+                        <div
+                          key={st.step}
+                          className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-blue-400 transition-all space-y-2"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-200 shadow-xs relative">
+                              <img src={stepImg} alt={st.title} className="w-full h-full object-cover" />
+                              <div className="absolute top-1 left-1 w-5 h-5 rounded-md bg-slate-900/85 text-white font-bold text-[10px] flex items-center justify-center">
+                                {st.step}
+                              </div>
                             </div>
-                          ))}
+                            <div className="flex-1">
+                              <h4 className="font-extrabold text-slate-900 text-sm">{st.title}</h4>
+                              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{st.desc}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-2 border-t border-slate-200/60 text-[10.5px]">
+                            {st.points.map((pt, pIdx) => (
+                              <div key={pIdx} className="flex items-center gap-1 text-slate-700 font-medium">
+                                <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
+                                <span className="line-clamp-1">{pt}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

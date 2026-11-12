@@ -72,8 +72,12 @@ export default function PaymentModal({ isOpen = true, booking, onClose, onPaymen
         {paymentSuccess ? (
           /* Payment Success View */
           <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-100 text-green-700 flex items-center justify-center mx-auto shadow-xs">
-              <CheckCircle2 size={36} />
+            <div className="w-20 h-20 mx-auto">
+              <img
+                src="/images/ui/order_success.png"
+                alt="Payment Confirmed"
+                className="w-full h-full object-contain"
+              />
             </div>
 
             <h3 className="text-xl font-bold text-gray-900">Payment Confirmed!</h3>

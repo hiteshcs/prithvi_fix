@@ -12,6 +12,7 @@ import {
   Search, Mic, MicOff, MapPin, Check, Clock, ThumbsUp, Snowflake, LocateFixed, X
 } from 'lucide-react';
 import HomeReviews from '../components/HomeReviews';
+import { PROMO_BANNERS, CATEGORY_IMAGE_MAP, TRUST_BADGES } from '../utils/serviceImageMap';
 
 export default function Home() {
   const { lang, t } = useLanguage();
@@ -491,6 +492,70 @@ export default function Home() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
+          1.5 SEASONAL SPECIALS & COOPERATIVE CAMPAIGNS
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+              Seasonal & Priority Programs
+            </span>
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">
+              Featured Cooperative Campaigns
+            </h3>
+          </div>
+          <Link
+            to="/services"
+            className="text-xs font-bold text-blue-900 hover:text-blue-700 flex items-center gap-1 transition"
+          >
+            <span>View All</span>
+            <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 scroll-reveal-stagger">
+          {PROMO_BANNERS.map((banner) => (
+            <Link
+              key={banner.id}
+              to={banner.link}
+              className="scroll-reveal-card group rounded-2xl overflow-hidden border border-slate-200/90 hover:border-blue-900 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col bg-white"
+            >
+              <div className="relative h-36 w-full overflow-hidden bg-slate-100">
+                <img
+                  src={banner.image}
+                  alt={banner.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                <div className="absolute top-2.5 left-2.5">
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${banner.badgeColor} shadow-xs`}>
+                    {banner.tag}
+                  </span>
+                </div>
+                <div className="absolute bottom-2 right-2 bg-slate-900/80 backdrop-blur-xs text-white px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold">
+                  {banner.price} <span className="text-[9px] text-slate-300 font-sans font-normal">/{banner.unit}</span>
+                </div>
+              </div>
+              <div className="p-3.5 flex flex-col justify-between flex-1">
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-900 group-hover:text-blue-900 transition-colors line-clamp-1">
+                    {banner.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                    {banner.desc}
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-900">
+                  <span>Explore Service</span>
+                  <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
           2. STANDARDIZED SERVICES CATALOG (WITH MINIMAL FILTER TABS)
          ───────────────────────────────────────────────────────────── */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -543,9 +608,20 @@ export default function Home() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3.5">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${cat.iconColor}`}>
-                      <Icon size={22} />
-                    </div>
+                    {CATEGORY_IMAGE_MAP[cat.categoryName] ? (
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-slate-200 bg-slate-50 shadow-2xs group-hover:scale-105 transition-transform duration-300">
+                        <img
+                          src={CATEGORY_IMAGE_MAP[cat.categoryName]}
+                          alt={cat.categoryName}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${cat.iconColor}`}>
+                        <Icon size={22} />
+                      </div>
+                    )}
 
                     {cat.popular && (
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
@@ -792,6 +868,24 @@ export default function Home() {
                 </li>
               </ul>
             </div>
+          </div>
+
+          {/* 4 Pillars of Cooperative Trust Badges */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10 max-w-5xl mx-auto scroll-reveal-stagger">
+            {TRUST_BADGES.map((b) => (
+              <div
+                key={b.id}
+                className="scroll-reveal-card p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-md transition text-left flex items-start gap-3.5"
+              >
+                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-50 border border-slate-200/70 shadow-2xs p-1">
+                  <img src={b.image} alt={b.title} className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-slate-900 leading-snug">{b.title}</h4>
+                  <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{b.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

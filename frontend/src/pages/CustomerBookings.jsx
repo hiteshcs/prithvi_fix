@@ -190,8 +190,12 @@ export default function CustomerBookings() {
         />
       ) : filteredBookings.length === 0 ? (
         <div className="bg-white p-12 text-center rounded-2xl border border-gray-200 shadow-xs space-y-4">
-          <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center mx-auto">
-            <FileText size={28} />
+          <div className="w-28 h-28 mx-auto">
+            <img
+              src="/images/ui/empty_bookings.png"
+              alt="No Bookings"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h3 className="text-base font-bold text-gray-900">{t('noBookings')}</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">

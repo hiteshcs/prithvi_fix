@@ -32,3 +32,6 @@ Thumbs.db
 # Coverage
 coverage/
 
+# Raw unprocessed assets dump
+47 images/
+

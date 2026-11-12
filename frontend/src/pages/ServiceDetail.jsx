@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { calculate9325Split } from '../data/rateCardData';
 import { getProcessStepsForService } from '../utils/serviceProcessData';
+import { getServiceImage } from '../utils/serviceImageMap';
 
 // AC Service Pricing Matrix (Quantity tiers)
 const SERVICE_TIERS = [
@@ -370,8 +371,8 @@ export default function ServiceDetail() {
             {/* Right: Realistic Hero Photography */}
             <div className="lg:col-span-5 relative bg-slate-900 min-h-[260px] lg:min-h-full">
               <img
-                src="/services/ac-foam-jet-hero.jpg"
-                alt="HVAC technician performing foam jet cleaning on indoor AC unit"
+                src={getServiceImage(service?.name, service?.category) || "/services/ac-foam-jet-hero.jpg"}
+                alt={service?.name || "Service hero"}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent lg:hidden" />
